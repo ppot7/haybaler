@@ -5,6 +5,13 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Pgx Eod",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "program": "${workspaceFolder}/cmd/pgxapp"
+        },
+        {
             "name": "EodHd Client Test",
             "type": "go",
             "request": "launch",
@@ -15,7 +22,6 @@
                 "TestCreateGetStatement"
             ]
         },
-
         {
             "name": "Haybaler",
             "type": "go",
