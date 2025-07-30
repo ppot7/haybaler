@@ -1,35 +1,46 @@
 package main
 
 import (
+	"context"
 	"fmt"
+	"log/slog"
+	"net/http"
+	"time"
 
+	"github.com/ppot7/haybaler/eodhd"
 	"github.com/ppot7/haybaler/eodps"
 )
 
 func main() {
 	fmt.Println("Starting PGX Main App")
 
-	priceTable := "DAILY_PRICE_RANGE_VOL"
-	dividendTable := "DAILY_DIVIDEND"
-	splitTable := "DAILY_SPLIT"
+	token := "67c86114a60525.79523855"
 
-	config := eodps.CreateConnectionConfig("localhost", 5432, "postgres", "Gr8Gaz00!", "DAILY_ASSET_DATA")
-	conn, err := eodps.CreateEodPostgresConnection(priceTable, dividendTable, splitTable, config)
+	eodClient := &eodhd.EodHdClient{
+		Token:  token,
+		Url:    "https://www.eodhd.com",
+		Client: http.Client{},
+	}
 
+	begin := time.Date(2003, time.January, 1, 0, 0, 0, 0, time.UTC)
+	dataPoints, err := eodClient.RetrievePriceRangeData("MSFT", "US", begin, begin.AddDate(0, 1, 0))
 	if err != nil {
-		fmt.Println(err)
+		slog.Error("error retrieving data points")
 		return
 	}
 
-	conn.Close()
-	// config := eodps.CreateConnectionConfig(host, port, user, password, database)
-	// fmt.Println(config)
-	// conn, err := eodps.CreateEodPostgresConnection("price_range_vol", "dividends", "splits", config)
-	// if err != nil {
-	// 	return
-	// }
+	pgConn, err := eodps.CreateDefaultEodConnection("localhost", 5432, "postgres", "Gr8Gaz00!", "DAILY_ASSET_DATA")
+	if err != nil {
+		slog.Error("pgx connection error", "err", err)
+		return
+	}
+	defer pgConn.Close()
 
-	// conn.Close()
+	pgConn.IngestPriceRangeData(context.TODO(), dataPoints)
+
+	for _, dataPoint := range dataPoints {
+		fmt.Printf("%s\n", dataPoint.GoString())
+	}
 
 	fmt.Println("Stopping PGX Main App")
 }

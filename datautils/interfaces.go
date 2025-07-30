@@ -1,6 +1,9 @@
 package datautils
 
-import "time"
+import (
+	"context"
+	"time"
+)
 
 type PriceRangeDataRetriever interface {
 	RetrievePriceRangeData(ticker string, exchange string, beginDate time.Time, endDate time.Time, flags ...uint32) ([]PriceRangeData, error)
@@ -9,7 +12,7 @@ type PriceRangeDataRetriever interface {
 }
 
 type PriceRangeDataIngestor interface {
-	IngestPriceRangeData([]PriceRangeData) error
-	IngestDividendData([]DividendData) error
-	IngestSplitData([]SplitData) error
+	IngestPriceRangeData(ctx context.Context, priceRange []PriceRangeData) error
+	IngestDividendData(ctx context.Context, dividendInfo []DividendData) error
+	IngestSplitData(ctx context.Context, splitInfo []SplitData) error
 }
