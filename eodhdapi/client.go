@@ -56,6 +56,42 @@ func (p *EodHdApiClient) RetrievePriceVolumeRecords(ticker string, exchange stri
 	}, nil
 }
 
+func (p *EodHdApiClient) RetrieveDividendRecords(ticker string, exchange string, begin time.Time, end time.Time, options ...uint32) (iter.Seq2[*haybaler.EodDividend, error], error) {
+	options = append(options, dividend)
+	rawSet, err := p.requestRawRecords(ticker, exchange, begin, end, options...)
+	if err != nil {
+		slog.Error("could not retrieve raw data", "err", err)
+		return nil, fmt.Errorf("could not retrieve raw data (error: %s)", err)
+	}
+
+	return func(yield func(*haybaler.EodDividend, error) bool) {
+		for rawRecord := range rawSet {
+			record, err := parseDividendCsv(ticker, exchange, rawRecord)
+			if !yield(record, err) {
+				return
+			}
+		}
+	}, nil
+}
+
+func (p *EodHdApiClient) RetrieveSplitRecords(ticker string, exchange string, begin time.Time, end time.Time, options ...uint32) (iter.Seq2[*haybaler.EodSplit, error], error) {
+	options = append(options, split)
+	rawSet, err := p.requestRawRecords(ticker, exchange, begin, end, options...)
+	if err != nil {
+		slog.Error("could not retrieve raw data", "err", err)
+		return nil, fmt.Errorf("could not retrieve raw data (error: %s)", err)
+	}
+
+	return func(yield func(*haybaler.EodSplit, error) bool) {
+		for rawRecord := range rawSet {
+			record, err := parseSplitCsv(ticker, exchange, rawRecord)
+			if !yield(record, err) {
+				return
+			}
+		}
+	}, nil
+}
+
 /************** Internal Functions ******************/
 func (p *EodHdApiClient) requestRawRecords(ticker string, exchange string, begin time.Time, end time.Time, options ...uint32) (iter.Seq[string], error) {
 
