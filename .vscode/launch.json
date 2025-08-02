@@ -5,6 +5,13 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Iteration Test",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}/cmd/itertest"
+        },
+        {
             "name": "Pgx Eod",
             "type": "go",
             "request": "launch",
@@ -15,8 +22,8 @@
             "name": "EodHd Client Test",
             "type": "go",
             "request": "launch",
-            "mode": "test",
-            "program": "${workspaceFolder}/eodhd/",
+            "mode": "debug",
+            "program": "${workspaceFolder}/cmd/eodhd",
             "args": [
                 "-test.run",
                 "TestCreateGetStatement"

@@ -1,7 +1,9 @@
 package eodhdapi
 
 import (
+	"bufio"
 	"fmt"
+	"iter"
 	"log/slog"
 	"net/http"
 	"strconv"
@@ -37,7 +39,53 @@ func CreateEodHdClient(host string, token string, client *http.Client) *EodHdApi
 	}
 }
 
+func (p *EodHdApiClient) RetrievePriceVolumeRecords(ticker string, exchange string, begin time.Time, end time.Time, options ...uint32) (iter.Seq2[*haybaler.EodPriceVolume, error], error) {
+	rawSet, err := p.requestRawRecords(ticker, exchange, begin, end, options...)
+	if err != nil {
+		slog.Error("could not retrieve raw data", "err", err)
+		return nil, fmt.Errorf("could not retrieve raw data (error: %s)", err)
+	}
+
+	return func(yield func(*haybaler.EodPriceVolume, error) bool) {
+		for rawRecord := range rawSet {
+			record, err := parsePriceVolumeCsv(ticker, exchange, rawRecord)
+			if !yield(record, err) {
+				return
+			}
+		}
+	}, nil
+}
+
 /************** Internal Functions ******************/
+func (p *EodHdApiClient) requestRawRecords(ticker string, exchange string, begin time.Time, end time.Time, options ...uint32) (iter.Seq[string], error) {
+
+	getStmt, err := p.buildGetStatement(ticker, exchange, begin, end, options...)
+	if err != nil {
+		return nil, fmt.Errorf("could not form proper Get request: %s", err)
+	}
+
+	response, err := p.Get(getStmt)
+	if err != nil {
+		return nil, fmt.Errorf("could not retrieve response: %s", err)
+	}
+
+	if response.StatusCode != http.StatusOK {
+		slog.Error("status code error", "status", response.Status)
+		return nil, fmt.Errorf("invalid response status: %s", response.Status)
+	}
+
+	return func(yield func(string) bool) {
+		scanner := bufio.NewScanner(response.Body)
+		defer response.Body.Close()
+
+		scanner.Scan()
+		for scanner.Scan() {
+			if !yield(scanner.Text()) {
+				return
+			}
+		}
+	}, nil
+}
 
 func (p *EodHdApiClient) buildGetStatement(ticker string, exchange string, begin time.Time, end time.Time, options ...uint32) (string, error) {
 	infoType := "eod"
@@ -65,8 +113,8 @@ func (p *EodHdApiClient) buildGetStatement(ticker string, exchange string, begin
 func parsePriceVolumeCsv(ticker string, exchange string, dataCsv string) (*haybaler.EodPriceVolume, error) {
 	/* Parse .csv line into 6 elements - TradeDate, Ticker, Exchange, Open, High, Low, Close, Volume */
 	dataPoints := strings.Split(dataCsv, ",")
-	if len(dataPoints) != 6 {
-		slog.Error("data .csv string does not contain 6 elements", "data", dataCsv)
+	if len(dataPoints) != 7 {
+		slog.Error("data .csv string does not contain 6 elements", "data", dataCsv, "len", len(dataPoints))
 		return nil, fmt.Errorf("cannot parse data string: %s", dataCsv)
 	}
 	/* Parse Element #1 - TradeDate */
@@ -100,10 +148,10 @@ func parsePriceVolumeCsv(ticker string, exchange string, dataCsv string) (*hayba
 		return nil, fmt.Errorf("error parsing close price string (%s) to float32", dataPoints[4])
 	}
 	/* Parse Element #6 -  Volume */
-	volume, err := strconv.ParseInt(dataPoints[5], 10, 32)
+	volume, err := strconv.ParseInt(dataPoints[6], 10, 32)
 	if err != nil {
-		slog.Error("volume parse error", "input", dataPoints[5])
-		return nil, fmt.Errorf("error parsing volume string (%s) to int32", dataPoints[5])
+		slog.Error("volume parse error", "input", dataPoints[6])
+		return nil, fmt.Errorf("error parsing volume string (%s) to int32", dataPoints[6])
 	}
 	return &haybaler.EodPriceVolume{
 		TradeDate: tradeDate,
