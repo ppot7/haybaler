@@ -5,6 +5,13 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Add Functionality",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}/cmd/add"
+        },
+        {
             "name": "Iteration Test",
             "type": "go",
             "request": "launch",
