@@ -12,20 +12,6 @@
             "program": "${workspaceFolder}/cmd/add"
         },
         {
-            "name": "Iteration Test",
-            "type": "go",
-            "request": "launch",
-            "mode": "auto",
-            "program": "${workspaceFolder}/cmd/itertest"
-        },
-        {
-            "name": "Pgx Eod",
-            "type": "go",
-            "request": "launch",
-            "mode": "debug",
-            "program": "${workspaceFolder}/cmd/pgxapp"
-        },
-        {
             "name": "EodHd Client Test",
             "type": "go",
             "request": "launch",
@@ -36,12 +22,5 @@
                 "TestCreateGetStatement"
             ]
         },
-        {
-            "name": "Haybaler",
-            "type": "go",
-            "request": "launch",
-            "mode": "auto",
-            "program": "${workspaceFolder}/cmd/app"
-        }
     ]
 }
