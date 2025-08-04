@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/lpernett/godotenv"
+	"github.com/ppot7/haybaler"
 	"github.com/ppot7/haybaler/eodhdapi"
 	"github.com/ppot7/haybaler/eodpostgres"
 )
@@ -43,14 +44,16 @@ func main() {
 	}
 	defer conn.Close(context.TODO())
 
+	dataArray := make([]haybaler.EodSplit, 0, 25)
 	for data, err := range pvData {
 		if err != nil {
 			fmt.Println(err)
 		} else {
-			fmt.Println(data.GoString())
+			dataArray = append(dataArray, *data)
 		}
-
 	}
+
+	conn.LoadSplitData(context.TODO(), dataArray)
 
 	fmt.Println("Stopping Add Procedure")
 }
