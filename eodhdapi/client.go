@@ -39,7 +39,7 @@ func CreateEodHdClient(host string, token string, client *http.Client) *EodHdApi
 	}
 }
 
-func (p *EodHdApiClient) RetrievePriceVolumeRecords(ticker string, exchange string, begin time.Time, end time.Time, options ...uint32) (iter.Seq2[*haybaler.EodPriceVolume, error], error) {
+func (p *EodHdApiClient) RetrievePriceVolumeData(ticker string, exchange string, begin time.Time, end time.Time, options ...uint32) (iter.Seq2[*haybaler.EodPriceVolume, error], error) {
 	rawSet, err := p.requestRawRecords(ticker, exchange, begin, end, options...)
 	if err != nil {
 		slog.Error("could not retrieve raw data", "err", err)
@@ -56,7 +56,7 @@ func (p *EodHdApiClient) RetrievePriceVolumeRecords(ticker string, exchange stri
 	}, nil
 }
 
-func (p *EodHdApiClient) RetrieveDividendRecords(ticker string, exchange string, begin time.Time, end time.Time, options ...uint32) (iter.Seq2[*haybaler.EodDividend, error], error) {
+func (p *EodHdApiClient) RetrieveDividendData(ticker string, exchange string, begin time.Time, end time.Time, options ...uint32) (iter.Seq2[*haybaler.EodDividend, error], error) {
 	options = append(options, dividend)
 	rawSet, err := p.requestRawRecords(ticker, exchange, begin, end, options...)
 	if err != nil {
@@ -74,7 +74,7 @@ func (p *EodHdApiClient) RetrieveDividendRecords(ticker string, exchange string,
 	}, nil
 }
 
-func (p *EodHdApiClient) RetrieveSplitRecords(ticker string, exchange string, begin time.Time, end time.Time, options ...uint32) (iter.Seq2[*haybaler.EodSplit, error], error) {
+func (p *EodHdApiClient) RetrieveSplitData(ticker string, exchange string, begin time.Time, end time.Time, options ...uint32) (iter.Seq2[*haybaler.EodSplit, error], error) {
 	options = append(options, split)
 	rawSet, err := p.requestRawRecords(ticker, exchange, begin, end, options...)
 	if err != nil {
