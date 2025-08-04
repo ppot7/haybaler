@@ -16,4 +16,7 @@ type EodDataLoader interface {
 	LoadPriceVolumeData(ctx context.Context, dataRange []EodPriceVolume) error
 	LoadDividendData(ctx context.Context, dataRange []EodDividend) error
 	LoadSplitData(ctx context.Context, dataRange []EodSplit) error
+	LoadPriceVolumeStream(ctx context.Context, dataStream iter.Seq2[*EodPriceVolume, error], batchSize int) error
+	LoadDividendStream(ctx context.Context, dataStream iter.Seq2[*EodDividend, error], batchSize int) error
+	LoadSplitStream(ctx context.Context, dataStream iter.Seq2[*EodSplit, error], batchSize int) error
 }

@@ -12,7 +12,7 @@ func (p *EodPriceVolume) GoString() string {
 }
 
 func (p *EodDividend) GoString() string {
-	return fmt.Sprintf("Ex-Date: %s  Ticker:  %s  Exchange: %s  Dividend: %.5f", p.ExDate.Format(time.DateOnly), p.Ticker, p.ExDate, p.Value)
+	return fmt.Sprintf("Ex-Date: %s  Ticker:  %s  Exchange: %s  Dividend: %.5f", p.ExDate.Format(time.DateOnly), p.Ticker, p.Exchange, p.Value)
 }
 
 func (p *EodSplit) GoString() string {

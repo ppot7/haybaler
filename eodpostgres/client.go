@@ -3,6 +3,7 @@ package eodpostgres
 import (
 	"context"
 	"fmt"
+	"iter"
 	"log/slog"
 
 	"github.com/jackc/pgx/v5"
@@ -97,7 +98,7 @@ func (p *EodPsConnection) LoadDividendData(ctx context.Context, dataRange []hayb
 			"date":     data.ExDate,
 			"ticker":   data.Ticker,
 			"exchange": data.Exchange,
-			"factor":   data.Value,
+			"dividend": data.Value,
 		})
 	}
 
@@ -152,5 +153,122 @@ func (p *EodPsConnection) LoadSplitData(ctx context.Context, dataRange []haybale
 		return fmt.Errorf("%d non-fatal batch insert errors found (see logs)", errCount)
 	}
 
+	return nil
+}
+
+func (p *EodPsConnection) LoadPriceVolumeStream(ctx context.Context, dataStream iter.Seq2[*haybaler.EodPriceVolume, error], batchSize int) error {
+
+	counter := 0
+	errCount := 0
+	dataArray := make([]haybaler.EodPriceVolume, 0, batchSize)
+	for data, err := range dataStream {
+
+		if err != nil {
+			errCount++
+			slog.Error("non-fatal error reading stream (skipping record)", "err", err)
+		} else {
+			counter++
+			dataArray = append(dataArray, *data)
+			if counter%batchSize == 0 {
+				err := p.LoadPriceVolumeData(ctx, dataArray)
+				if err != nil {
+					errCount++
+					slog.Error("loading error", "err", err)
+				}
+				dataArray = dataArray[:0]
+				counter = 0
+			}
+		}
+	}
+
+	if len(dataArray) != 0 {
+		err := p.LoadPriceVolumeData(ctx, dataArray)
+		if err != nil {
+			errCount++
+			slog.Error("loading error", "err", err)
+		}
+	}
+
+	if errCount != 0 {
+		return fmt.Errorf("%d errors parsing and loading (check logs)", errCount)
+	}
+	return nil
+}
+
+func (p *EodPsConnection) LoadSplitStream(ctx context.Context, dataStream iter.Seq2[*haybaler.EodSplit, error], batchSize int) error {
+
+	counter := 0
+	errCount := 0
+	dataArray := make([]haybaler.EodSplit, 0, batchSize)
+	for data, err := range dataStream {
+
+		if err != nil {
+			errCount++
+			slog.Error("non-fatal error reading stream (skipping record)", "err", err)
+		} else {
+			counter++
+			dataArray = append(dataArray, *data)
+			if counter%batchSize == 0 {
+				err := p.LoadSplitData(ctx, dataArray)
+				if err != nil {
+					errCount++
+					slog.Error("loading error", "err", err)
+				}
+				dataArray = dataArray[:0]
+				counter = 0
+			}
+		}
+	}
+
+	if len(dataArray) != 0 {
+		err := p.LoadSplitData(ctx, dataArray)
+		if err != nil {
+			errCount++
+			slog.Error("loading error", "err", err)
+		}
+	}
+
+	if errCount != 0 {
+		return fmt.Errorf("%d errors parsing and loading (check logs)", errCount)
+	}
+	return nil
+}
+
+func (p *EodPsConnection) LoadDividendStream(ctx context.Context, dataStream iter.Seq2[*haybaler.EodDividend, error], batchSize int) error {
+
+	counter := 0
+	errCount := 0
+	dataArray := make([]haybaler.EodDividend, 0, batchSize)
+	for data, err := range dataStream {
+
+		if err != nil {
+			errCount++
+			slog.Error("non-fatal error reading stream (skipping record)", "err", err)
+		} else {
+			counter++
+			dataArray = append(dataArray, *data)
+			if counter%batchSize == 0 {
+				err := p.LoadDividendData(ctx, dataArray)
+				if err != nil {
+					errCount++
+					slog.Error("loading error", "err", err)
+				}
+				dataArray = dataArray[:0]
+				counter = 0
+			}
+		}
+	}
+
+	if len(dataArray) != 0 {
+		err := p.LoadDividendData(ctx, dataArray)
+		if err != nil {
+			errCount++
+			slog.Error("loading error", "err", err)
+		}
+	}
+
+	if errCount != 0 {
+		return fmt.Errorf("%d errors parsing and loading (check logs)", errCount)
+	}
 	return nil
 }
