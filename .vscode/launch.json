@@ -5,6 +5,18 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Haybaler App",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}/cmd/app",
+            "args": [
+                "add",
+                "--ticker-file",
+                "ticker.txt"
+            ]
+        },
+        {
             "name": "Add Functionality",
             "type": "go",
             "request": "launch",
