@@ -48,7 +48,7 @@ func ConnectToPsDatabase(ctx context.Context, schema string, priceVol string, di
 
 func (p *EodPsConnection) LoadPriceVolumeData(ctx context.Context, dataRange []haybaler.EodPriceVolume) error {
 
-	query_base := fmt.Sprintf(`INSERT INTO "%s"."%s " `, p.SchemaName, p.DividendTable)
+	query_base := fmt.Sprintf(`INSERT INTO "%s"."%s" `, p.SchemaName, p.PriceVolumeTable)
 	query_base += `(trade_date, ticker, exchange, open_price, high_price, low_price, close_price, volume)`
 	query_base += ` VALUES (@date, @ticker, @exchange, @open, @high, @low, @close, @volume)`
 
